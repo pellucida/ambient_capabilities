@@ -1,0 +1,207 @@
+
+Linux Ambient Capabilities
+==========================
+
+In order to demonstrate how ambient capabilities are related to
+existing capabilities we look at a simple example of setting
+the maximum transmission unit (MTU) on the loopback interface "lo"
+which required CAP_NET_ADMIN privilege.
+
+The first method uses an ioctl(2) call to set the MTU and doesn't
+require ambient capabilities.
+The second method invokes the iproute2 utility ip(8) "/sbin/ip"
+which does require ambient capabilities.
+
+
+Setting MTU with an ioctl
+=========================
+
+The skeleton code (see src/example_setmtu_ioctl.c)
+
+19   char	interface[]	= "lo";
+20   int	mtu	= ioctl_getmtu (interface);
+        	
+23   if (cap_is_effective (CAP_NET_ADMIN)) {
+24   	fprintf (stdout, "CAP_NET_ADMIN already in effective\n");
+     }
+26   else if (cap_is_permitted (CAP_NET_ADMIN)) {
+27   	int	result	= cap_do_set (CAP_NET_ADMIN, CAP_EFFECTIVE);
+     }
+     else	{
+38   	fprintf (stderr, "CAP_NET_ADMIN not in permitted\n");
+     }
+        
+41   if (ioctl_setmtu ("lo", 64321) != 0) {
+42   	perror ("ioctl SIOCSIFMTU");
+     }
+
+Line 23 checks whether CAP_NET_ADMIN is already in the process' effective set
+If not line 26 checks whether its in the permitted set and if not we cannot
+obtain the privilege to change the MTU. Otherwise we add CAP_NET_ADMIN to
+the effective set.
+
+The functions used to manipulate the process capabilities are
+in src/capability_utils.c
+
+Running the example
+   cd src
+   make example_setmtu_ioctl
+
+# Check the inteface
+   ip l sh dev lo
+   1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 ...
+
+# Check program has not capabilities
+   getcap example_setmtu_ioctl 		# nothing
+   
+   ./example_setmtu_ioctl 
+   interface lo mtu=65536
+   CAP_NET_ADMIN not in permitted
+   ioctl SIOCSIFMTU: Operation not permitted
+
+# Give program the ability to add CAP_NET_ADMIN to its effective set
+   sudo setcap cap_net_admin=p example_setmtu_ioctl
+
+# Check
+   getcap example_setmtu_ioctl
+   example_setmtu_ioctl = cap_net_admin+p
+
+   ./example_setmtu_ioctl
+   interface lo mtu=65536
+   CAP_NET_ADMIN added to effective
+   interface lo mtu now set to 64000
+
+# Reset MTU
+   sudo ip l set mtu 65536 dev lo
+
+# Add CAP_NET_ADMIN to effective set
+   sudo setcap cap_net_admin=ep example_setmtu_ioctl
+
+   getcap example_setmtu_ioctl
+   example_setmtu_ioctl = cap_net_admin+ep
+
+   ./example_setmtu_ioctl
+   interface lo mtu=65536
+   CAP_NET_ADMIN already in effective
+   interface lo mtu now set to 64000
+
+NOTE:
+     adding CAP_NET_ADMIN to the effective set means the program doesn't
+have to do any capability manipulation and can be capability unaware.
+That is we can reduce the original program to:
+(see src/example_setmtu_ioctl_nocap.c)
+
+18   char	interface[]	= "lo";
+19   int	mtu	= ioctl_getmtu (interface);
+
+22   if (ioctl_setmtu ("lo", 64321) != 0) {
+23   	perror ("ioctl SIOCSIFMTU");
+
+# No caps
+   ./example_setmtu_ioctl_nocap
+   interface lo mtu=65536
+   ioctl SIOCSIFMTU: Operation not permitted
+
+# Permitted but code doesn't do cap manipulation
+   sudo setcap cap_net_admin=p example_setmtu_ioctl_nocap
+   ./example_setmtu_ioctl_nocap
+   interface lo mtu=65536
+   ioctl SIOCSIFMTU: Operation not permitted
+	
+# Effective 
+   sudo setcap cap_net_admin=ep example_setmtu_ioctl_nocap
+   ./example_setmtu_ioctl_nocap
+   interface lo mtu=65536
+   interface lo mtu now set to 64000
+
+-------------------
+
+Setting MTU using external program 
+==================================
+
+We can set the MTU of an interface with ip(8) or ifconfig(8)
+
+   /sbin/ip link set mtu 65536 dev lo
+
+if we have sufficient privilege
+   ip l set mtu 65536 dev lo
+   RTNETLINK answers: Operation not permitted
+
+   ifconfig lo mtu 65536
+   SIOCSIFMTU: Operation not permitted
+
+(Notice iproute2 uses netlink not ioct )
+
+   sudo ip l set mtu 65432 dev lo
+
+   ip l sh dev lo
+   1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65432
+
+
+Now if we invoke ip from within a program using fork(2) and exec(2)
+ip will have to inherit the capabilities from this program.
+(see src/example_setmtu_exec.c)
+
+   run ("/sbin/ip", "ip", "link", "show", "dev", "lo", (char*)0);
+   run ("/sbin/ip", "ip", "link", "set", "mtu", "65500", "dev", "lo", (char*)0);
+   run ("/sbin/ip", "ip", "link", "show", "dev", "lo", (char*)0);
+
+(The "run" wrapper is src/run_utils.c)
+
+   ./example_setmtu_exec
+   1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc ....
+    
+   RTNETLINK answers: Operation not permitted
+
+   1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc ....
+
+# Try setting permitted and inherited
+   sudo setcap cap_net_admin=ip ./example_setmtu_exec
+   ./example_setmtu_exec
+   ...
+   RTNETLINK answers: Operation not permitted
+   ...
+# No joy with adding effective either as capabilities are *not* inherited
+# across exec(2)
+   (see src/example_setmtu_exec_cap.c)
+
+   if (cap_is_permitted (CAP_NET_ADMIN)) {
+	cap_do_set (CAP_NET_ADMIN, CAP_INHERITABLE);
+   }
+   run ("/sbin/ip", "ip", "link", "show", "dev", "lo", (char*)0);
+   run ("/sbin/ip", "ip", "link", "set", "mtu", "65500", "dev", "lo", (char*)0);
+   run ("/sbin/ip", "ip", "link", "show", "dev", "lo", (char*)0);
+
+   ./example_setmtu_exec_cap
+   ...
+   RTNETLINK answers: Operation not permitted
+   ...
+-------
+The magic incantation is via a prctl(2) syscall
+viz
+    prctl (PR_CAP_AMBIENT, PR_CAP_AMBIENT_RAISE, CAP_NET_ADMIN, 0, 0)
+
+(see src/example_setmtu_exec_prctl.c)
+
+11   int	result	= -1;
+12   if (cap_is_permitted (CAP_NET_ADMIN)) {
+13   	cap_do_set (CAP_NET_ADMIN, CAP_INHERITABLE);
+     }
+16   result  =  prctl (PR_CAP_AMBIENT, PR_CAP_AMBIENT_RAISE, CAP_NET_ADMIN, 0, 0);
+17   if (result != 0) {
+18   	perror ("prctl: ");
+     }
+21   run ("/sbin/ip", "ip", "link", "show", "dev", "lo", 0);
+23   run ("/sbin/ip", "ip", "link", "set", "mtu", "65500", "dev", "lo", 0);
+25   run ("/sbin/ip", "ip", "link", "show", "dev", "lo", 0);
+
+# Now we try setting permitted 
+   sudo setcap cap_net_admin=p ./example_setmtu_exec_prctl
+
+   ./example_setmtu_exec_prctl 
+   1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc ...
+   1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65500 qdisc ...
+
+Note:
+    we only needed CAP_NET_ADMIN to be in permitted in order to add it
+to the inherited set.
