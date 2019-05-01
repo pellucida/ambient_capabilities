@@ -36,9 +36,9 @@ The skeleton code (see src/example_setmtu_ioctl.c)
      }
 
 Line 23 checks whether CAP_NET_ADMIN is already in the process' effective set
-If not line 26 checks whether its in the permitted set and if not we cannot
-obtain the privilege to change the MTU. Otherwise we add CAP_NET_ADMIN to
-the effective set.
+If not line 26 checks whether its in the permitted set.
+If it is not the we cannot obtain the privilege to change the MTU.
+Otherwise we add CAP_NET_ADMIN to the effective set.
 
 The functions used to manipulate the process capabilities are
 in src/capability_utils.c
@@ -130,7 +130,7 @@ if we have sufficient privilege
    ifconfig lo mtu 65536
    SIOCSIFMTU: Operation not permitted
 
-(Notice iproute2 uses netlink not ioct )
+(Notice iproute2 uses netlink not ioctl )
 
    sudo ip l set mtu 65432 dev lo
 
@@ -204,4 +204,4 @@ viz
 
 Note:
     we only needed CAP_NET_ADMIN to be in permitted in order to add it
-to the inherited set.
+to the process inherited set.

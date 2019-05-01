@@ -1,3 +1,6 @@
+//
+// @(#) capability_utils.c
+//
 # include	<sys/types.h>
 # include	<stdio.h>
 # include	<stdarg.h>
