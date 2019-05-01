@@ -9,6 +9,7 @@
 
 # include	<string.h>
 
+# include	"ioctl_mtu.h"
 //
 // Retrieve MTU from "interface" eg "em1"  [no privilege required]
 // 

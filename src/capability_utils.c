@@ -5,6 +5,7 @@
 # include	<sys/prctl.h>
 # include	<sys/capability.h>
 
+# include	"capability_utils.h"
 
 void	display_caps (cap_t caps) {
 	printf ("caps %s\n", cap_to_text (caps, 0));

@@ -4,6 +4,7 @@
 # include	<stdarg.h>
 # include	<unistd.h>
 
+# include	"run_utils.h"
 //
 // fork/exec and wait for command 
 //
