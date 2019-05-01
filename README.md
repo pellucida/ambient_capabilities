@@ -27,7 +27,7 @@ Linux kernel with ambient capability support and libcap-devel.
 ### SEE ALSO
 [Linus Torvald's post](https://github.com/torvalds/linux/commit/58319057b7847667f0c9585b9de0e8932b0fdb08)
 
-[S2hh's Blog "Ambient capabilities" 2015-07-25](https://s3hh.wordpress.com/2015/07/25/ambient-capabilities/)
+[S3hh's Blog "Ambient capabilities" 2015-07-25](https://s3hh.wordpress.com/2015/07/25/ambient-capabilities/)
 
 ### LICENSE
 [Creative Commons CC0](http://creativecommons.org/publicdomain/zero/1.0/legalcode)
