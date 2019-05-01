@@ -3,7 +3,7 @@
 Linux capabilities are described in the manual page
 [capabilities(7)](http://man7.org/linux/man-pages/man7/capabilities.7.html)
 
-While ambient capabilities were add to the linux kernel from version 4.3,
+While ambient capabilities were added to the linux kernel from version 4.3,
 [Redhat](https://access.redhat.com/solutions/1264083)
 has incorporated the patches into RHEL 7 since kernel-3.10.0-514.el7
 
@@ -30,8 +30,7 @@ Linux kernel with ambient capability support and libcap-devel.
 [S2hh's Blog "Ambient capabilities" 2015-07-25](https://s3hh.wordpress.com/2015/07/25/ambient-capabilities/)
 
 ### LICENSE
-Creative Commons CC0
-[http://creativecommons.org/publicdomain/zero/1.0/legalcode](http://creativecommons.org/publicdomain/zero/1.0/legalcode)
+[Creative Commons CC0](http://creativecommons.org/publicdomain/zero/1.0/legalcode)
 
 
 ### AUTHOR
