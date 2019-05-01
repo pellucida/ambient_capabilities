@@ -1,7 +1,7 @@
 
 ### Linux Ambient Capabilities
 Linux capabilities are described in the manual page
-[capabilities](http://man7.org/linux/man-pages/man7/capabilities.7.html)
+[capabilities(7)](http://man7.org/linux/man-pages/man7/capabilities.7.html)
 
 While ambient capabilities were add to the linux kernel from version 4.3,
 Redhat has back ported the patches to RHEL 7 since kernel-3.10.0-514.el7
