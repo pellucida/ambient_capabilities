@@ -208,6 +208,7 @@ viz
 
    ./example_setmtu_exec_prctl 
    1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc ...
+                                        ||
    1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65500 qdisc ...
 
 Note:
