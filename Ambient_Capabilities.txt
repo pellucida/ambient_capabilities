@@ -114,6 +114,14 @@ That is we can reduce the original program to:
    interface lo mtu=65536
    interface lo mtu now set to 64000
 
+Note:
+     if a program running with one of its [effective,real,saved]uid==0
+resets these uids!=0 it will lose any capabilities that it holds unless
+it uses the prctl(PR_SET_KEEPCAPS) system call.
+Typically this would a setuid(root) program or a daemon like ntpd(8)
+which starts with uids==0 and changes to uid==38 (ntp).
+See src/example_setmtu_suid.c (exhibits the need for the syscall)
+and src/example_setmtu_suid_prctl.c.
 -------------------
 
 Setting MTU using external program 
