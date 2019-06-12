@@ -10,7 +10,8 @@
 
 # include	"capability_utils.h"
 
-void	display_caps (cap_t caps) {
+void	display_caps (void) {
+	cap_t	caps	= cap_get_proc();
 	printf ("caps %s\n", cap_to_text (caps, 0));
 }
 

@@ -24,6 +24,8 @@ example_setmtu_ioctl:	example_setmtu_ioctl.o $(UTILS)
 example_setmtu_ioctl_nocap:	example_setmtu_ioctl_nocap.o ioctl_mtu.o
 	$(CC) -o $@ example_setmtu_ioctl_nocap.o ioctl_mtu.o
 	
+utils:	$(UTILS)
+
 clean:
 	rm -f *.o $(PROGS)
 
