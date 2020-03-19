@@ -33,4 +33,4 @@ Linux kernel with ambient capability support and libcap-devel.
 [Creative Commons CC0](http://creativecommons.org/publicdomain/zero/1.0/legalcode)
 
 ### AUTHOR
-[James Sainsbury](mailto:toves@sdf.lonestar.org)
+[James Sainsbury](mailto:toves@sdf.org)
